@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id "com.github.johnrengelman.shadow" version "5.2.0"
+}
+
+group 'com.morozov'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.jenetics:jpx:1.7.0'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.apache.kafka', name: 'kafka-clients', version: '2.5.0'
+    compile group: 'org.apache.kafka', name: 'kafka-streams', version: '2.5.0'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    compile group: 'log4j', name: 'log4j', version: '1.2.17'
+    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-stream-kafka', version: '3.0.9.RELEASE'
+    compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.4")
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'Main'
+        )
+    }
+}
+
+shadowJar {
+    manifest {
+        attributes('Main-Class': 'Main')
+    }
+}
+
+tasks.build.dependsOn tasks.shadowJar
