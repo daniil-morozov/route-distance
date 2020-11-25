@@ -135,5 +135,3 @@ gradle-app.setting
 .idea/misc.xml
 .idea/modules.xml
 .idea/vcs.xml
-gradle/
-src/test/resources/
