@@ -20,7 +20,7 @@ import utils.gpx.Mappers;
  */
 public class TotalDistanceConsumer {
 
-    public static void start(Properties props) {
+    public static KafkaStreams createStream(Properties props) {
         StreamsBuilder builder = new StreamsBuilder();
         KStream<String, GpxPoint> totalDistanceStream = builder
             .stream(Constants.TOPIC, Consumed.with(
@@ -38,8 +38,7 @@ public class TotalDistanceConsumer {
             .toStream()
             .foreach((key, value) -> System.out.println(Formatters.formatTotal(value)));
 
-        KafkaStreams streams = new KafkaStreams(builder.build(), props);
-        streams.start();
+        return new KafkaStreams(builder.build(), props);
     }
 
     private static DistanceTotal init() {

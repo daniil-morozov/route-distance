@@ -1,11 +1,13 @@
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 import kafka.consumer.TotalDistanceConsumer;
 import kafka.consumer.WindowedConsumer;
 import kafka.producer.GpxKafkaProducer;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import pointprocessing.PeriodicGpxProcessor;
 import utils.Constants;
@@ -29,8 +31,30 @@ public class Main {
                 GpxKafkaProducer.createSampleProducer(getProducerProps())::send);
         processor.start();
 
-        WindowedConsumer.start(getWindowedConsumerProps());
-        TotalDistanceConsumer.start(getTotalConsumerProps());
+        KafkaStreams windowedStream = WindowedConsumer.createStream(getWindowedConsumerProps());
+        KafkaStreams totalDistanceStream = TotalDistanceConsumer.createStream(getTotalConsumerProps());
+
+        CountDownLatch latch = new CountDownLatch(2);
+        Runtime.getRuntime().addShutdownHook(createHook(windowedStream, totalDistanceStream, latch));
+
+        try {
+            totalDistanceStream.start();
+            windowedStream.start();
+            latch.await();
+        } catch (Throwable e) {
+            System.exit(1);
+        }
+        System.exit(0);
+    }
+
+    private static Thread createHook(KafkaStreams windowedStream, KafkaStreams totalDistanceStream,
+        CountDownLatch latch) {
+        return new Thread(() -> {
+            totalDistanceStream.close();
+            latch.countDown();
+            windowedStream.close();
+            latch.countDown();
+        }, "streams-shutdown-hook");
     }
 
     private static Properties getWindowedConsumerProps() {

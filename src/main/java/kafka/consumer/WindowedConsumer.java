@@ -24,7 +24,7 @@ import utils.gpx.Mappers;
  */
 public class WindowedConsumer {
 
-    public static void start(Properties props) {
+    public static KafkaStreams createStream(Properties props) {
         StreamsBuilder builder = new StreamsBuilder();
         KStream<String, GpxPoint> windowedDistance = builder
             .stream(Constants.TOPIC, Consumed.with(
@@ -47,8 +47,7 @@ public class WindowedConsumer {
             .toStream()
             .foreach((key, value) -> System.out.println(Formatters.formatWindowed(value)));
 
-        KafkaStreams streams = new KafkaStreams(builder.build(), props);
-        streams.start();
+        return new KafkaStreams(builder.build(), props);
     }
 
     private static DistanceTotal init() {
